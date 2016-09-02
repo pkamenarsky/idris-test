@@ -6,8 +6,11 @@ record Person where
 data Field : String -> Type -> Type -> Type where
   F : (label : String) -> (s -> a) -> Field label s a
 
-data R : Type -> Type -> Type where
-  (:*:) : f1 -> f2 -> R f1 f2
+data U = UI
+
+data R : Type where
+  NR : R
+  (:*:) : {lbl : String} -> (Field lbl a b) -> R -> R
 
 infixr 10 :*:
 
@@ -17,15 +20,23 @@ nameE = F "name" Person.name
 ageE : Field "age" Person Int
 ageE = F "age" Person.age
 
-personR : R (Field "name" Person String) (Field "age" Person Int)
-personR = nameE :*: ageE
+personR : R
+personR = nameE :*: (ageE :*: NR)
 
-gatherFields : {a : Type} -> {b : Type} -> R (Field lbl a b) rest -> List String
-gatherFields (F lbl f :*: rest) = [lbl, lbl] -- lbl :: gatherFields rest
+total
+gatherFields : R -> List String
+gatherFields NR = []
+gatherFields (F lbl f :*: rest) = lbl :: gatherFields rest
+gatherFields (F lbl f :*: NR)   = [lbl]
+
+-- checkPerms : ["name", "age"] = gatherFields personR
+-- checkPerms = Refl
 
 phil : Person
 phil = MkPerson "asd" 55
 
 main : IO ()
 main = do
-  print $ gatherFields personR
+  case ["name", "age"] == gatherFields personR of
+    True  => print "Yes"
+    False => print "No"
