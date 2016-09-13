@@ -1,3 +1,5 @@
+module Main
+
 record Person where
   constructor MkPerson
   name : String
@@ -10,9 +12,11 @@ data U = UI
 
 data R : Type where
   NR : R
-  (:*:) : {lbl : String} -> (Field lbl a b) -> R -> R
+  (:*:) : Field lbl a b -> R -> R
 
 infixr 10 :*:
+
+data Permission perm a = Perm a
 
 nameE : Field "name" Person String
 nameE = F "name" Person.name
@@ -29,8 +33,8 @@ gatherFields NR = []
 gatherFields (F lbl f :*: rest) = lbl :: gatherFields rest
 gatherFields (F lbl f :*: NR)   = [lbl]
 
--- checkPerms : ["name", "age"] = gatherFields personR
--- checkPerms = Refl
+checkPerms : ["name", "age"] = gatherFields Main.personR
+checkPerms = Refl
 
 phil : Person
 phil = MkPerson "asd" 55
